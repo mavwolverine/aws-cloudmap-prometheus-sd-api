@@ -1,5 +1,5 @@
 use aws_sdk_servicediscovery::Client as ServiceDiscoveryClient;
-use log::info;
+use log::{info, debug};
 use serde::Serialize;
 use std::collections::HashMap;
 
@@ -32,7 +32,7 @@ impl Discovery {
 
         // List namespaces
         let namespaces_resp = self.client.list_namespaces().send().await?;
-        
+
         for namespace in namespaces_resp.namespaces() {
             let namespace_name = namespace.name().unwrap_or("unknown");
             let namespace_id = namespace.id().unwrap_or("");
@@ -59,6 +59,8 @@ impl Discovery {
                 .await?;
 
             for service in services_resp.services() {
+                debug!("🔍 Complete service object: {:?}", service);
+
                 let service_name = service.name().unwrap_or("unknown");
                 let service_id = service.id().unwrap_or("");
 
@@ -73,14 +75,20 @@ impl Discovery {
 
                 let mut service_targets = Vec::new();
                 for instance in instances_resp.instances() {
+                    debug!("🔍 Complete instance object: {:?}", instance);
+
                     if let Some(attributes) = instance.attributes() {
+                        debug!("🔍 Instance attributes: {:?}", attributes);
                         // Look for IP addresses in common attribute names
                         for ip_attr in ["AWS_INSTANCE_IPV4", "IPv4", "ip", "address"] {
                             if let Some(ip) = attributes.get(ip_attr) {
+                                debug!("✅ Found IP {} in attribute {}", ip, ip_attr);
                                 service_targets.push(ip.clone());
                                 break;
                             }
                         }
+                    } else {
+                        debug!("⚠️  Instance has no attributes");
                     }
                 }
 
