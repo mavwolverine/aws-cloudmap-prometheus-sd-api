@@ -16,3 +16,50 @@ pub async fn cloudmap_sd_handler(discovery: Discovery) -> Result<impl Reply, Rej
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::discovery::{Config, PrometheusTarget};
+    use std::collections::HashMap;
+
+    #[test]
+    fn test_cloudmap_error_debug() {
+        let error = CloudMapError;
+        let debug_str = format!("{:?}", error);
+        assert_eq!(debug_str, "CloudMapError");
+    }
+
+    #[test]
+    fn test_prometheus_target_creation() {
+        // Test that we can create a PrometheusTarget (used in handlers)
+        let mut labels = HashMap::new();
+        labels.insert("__meta_cloudmap_namespace_name".to_string(), "test-ns".to_string());
+        labels.insert("__meta_cloudmap_service_name".to_string(), "test-svc".to_string());
+
+        let target = PrometheusTarget {
+            targets: vec!["192.168.1.1:8080".to_string()],
+            labels,
+        };
+
+        assert_eq!(target.targets.len(), 1);
+        assert_eq!(target.labels.len(), 2);
+    }
+
+    #[test]
+    fn test_discovery_config_for_handler() {
+        // Test creating a discovery config that would be used by handlers
+        let config = Config {
+            region: Some("us-west-2".to_string()),
+            namespace: Some("production".to_string()),
+        };
+
+        assert_eq!(config.region, Some("us-west-2".to_string()));
+        assert_eq!(config.namespace, Some("production".to_string()));
+    }
+
+    // Note: Testing the actual cloudmap_sd_handler function would require
+    // mocking the AWS SDK client, which is complex. The handler logic is
+    // simple - it calls discovery.discover_targets() and handles the result.
+    // The real testing happens in the discovery module tests.
+}
