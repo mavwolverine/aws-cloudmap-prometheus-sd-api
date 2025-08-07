@@ -2,6 +2,8 @@
 
 A Rust-based HTTP API service discovery adapter for Prometheus that integrates with [AWS Cloud Map](https://aws.amazon.com/cloud-map/). This provides an HTTP endpoint that serves service discovery data in Prometheus-compatible JSON format, allowing you to dynamically discover targets registered in AWS Cloud Map without static configuration.
 
+It is based on https://github.com/awslabs/aws-cloudmap-prometheus-sd, adding an API instead of saving it to a file.
+
 AWS Cloud Map is a cloud resource discovery service. With Cloud Map, you can define custom names for your application resources, and it maintains the updated location of these dynamically changing resources. This increases your application availability because your web service always discovers the most up-to-date locations of its resources.
 
 ## Features
