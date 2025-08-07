@@ -1,11 +1,57 @@
+//! # HTTP Request Handlers
+//!
+//! This module contains HTTP request handlers for the service discovery API.
+//! It provides the main endpoint for Prometheus service discovery integration.
+//!
+//! ## Endpoints
+//!
+//! - `GET /cloudmap_sd`: Returns Prometheus-compatible service discovery JSON
+//!
+//! ## Error Handling
+//!
+//! All AWS API errors are caught and converted to HTTP 500 responses with
+//! appropriate logging for debugging purposes.
+
 use crate::discovery::Discovery;
 use log::error;
 use warp::{Reply, Rejection};
 
+/// Custom error type for Cloud Map discovery failures
+///
+/// This error is returned when the service discovery process fails,
+/// typically due to AWS API errors or network issues.
 #[derive(Debug)]
 pub struct CloudMapError;
 impl warp::reject::Reject for CloudMapError {}
 
+/// HTTP handler for the `/cloudmap_sd` endpoint
+///
+/// This handler performs AWS Cloud Map service discovery and returns
+/// the results in Prometheus-compatible JSON format.
+///
+/// # Arguments
+///
+/// * `discovery` - Discovery client configured with AWS credentials and settings
+///
+/// # Returns
+///
+/// * `Ok(impl Reply)` - JSON response with discovered targets
+/// * `Err(Rejection)` - HTTP error response (500 for discovery failures)
+///
+/// # Response Format
+///
+/// Returns a JSON array of target objects:
+/// ```json
+/// [
+///   {
+///     "targets": ["192.168.1.1", "192.168.1.2"],
+///     "labels": {
+///       "__meta_cloudmap_namespace_name": "production",
+///       "__meta_cloudmap_service_name": "web-service"
+///     }
+///   }
+/// ]
+/// ```
 pub async fn cloudmap_sd_handler(discovery: Discovery) -> Result<impl Reply, Rejection> {
     match discovery.discover_targets().await {
         Ok(targets) => Ok(warp::reply::json(&targets)),

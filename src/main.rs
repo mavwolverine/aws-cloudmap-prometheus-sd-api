@@ -1,3 +1,31 @@
+//! # AWS Cloud Map Prometheus Service Discovery API
+//!
+//! A Rust-based HTTP API service discovery adapter for Prometheus that integrates with AWS Cloud Map.
+//! This service provides an HTTP endpoint that serves service discovery data in Prometheus-compatible
+//! JSON format, allowing you to dynamically discover targets registered in AWS Cloud Map.
+//!
+//! ## Features
+//!
+//! - HTTP API endpoint at `/cloudmap_sd`
+//! - Real-time discovery from AWS Cloud Map
+//! - Optional namespace filtering
+//! - Prometheus-compatible JSON output
+//! - Configurable via JSON file and environment variables
+//! - Structured logging with configurable levels
+//!
+//! ## Usage
+//!
+//! ```bash
+//! # Run with default configuration
+//! cargo run
+//!
+//! # Run with environment overrides
+//! AWS_REGION=us-east-1 PORT=8080 cargo run
+//!
+//! # Test the endpoint
+//! curl http://localhost:3030/cloudmap_sd
+//! ```
+
 mod config;
 mod discovery;
 mod handlers;

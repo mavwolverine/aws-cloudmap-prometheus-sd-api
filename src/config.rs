@@ -1,3 +1,22 @@
+//! # Configuration Management
+//!
+//! This module handles configuration loading from JSON files and environment variables.
+//! It supports a hierarchical configuration system where environment variables override
+//! JSON file settings, which in turn override default values.
+//!
+//! ## Configuration Sources (in order of precedence)
+//!
+//! 1. Environment variables (highest priority)
+//! 2. JSON configuration file (`config.json`)
+//! 3. Default values (lowest priority)
+//!
+//! ## Environment Variables
+//!
+//! - `HOST`: Server bind address
+//! - `PORT`: Server port number
+//! - `AWS_REGION`: AWS region for Cloud Map operations
+//! - `CLOUDMAP_NAMESPACE`: Specific namespace to filter (optional)
+
 use serde::{Deserialize, Serialize};
 use log::{info, warn};
 use std::fs;
