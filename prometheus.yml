@@ -1,0 +1,72 @@
+# Prometheus configuration for AWS Cloud Map Service Discovery
+#
+# This configuration demonstrates how to use the AWS Cloud Map service discovery API
+# with Prometheus for dynamic target discovery.
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+# Rule files
+rule_files:
+  # - "first_rules.yml"
+  # - "second_rules.yml"
+
+# Scrape configurations
+scrape_configs:
+  # Scrape Prometheus itself
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # AWS Cloud Map service discovery
+  - job_name: 'cloudmap-discovery'
+    http_sd_configs:
+      - url: 'http://aws-cloudmap-sd-api:3030/cloudmap_sd'
+        refresh_interval: 30s
+    
+    # Relabeling rules to customize target labels
+    relabel_configs:
+      # Use the service name as the job label
+      - source_labels: [__meta_cloudmap_service_name]
+        target_label: service
+      
+      # Use the namespace name as a label
+      - source_labels: [__meta_cloudmap_namespace_name]
+        target_label: namespace
+      
+      # Add a custom label indicating this came from Cloud Map
+      - target_label: discovery_type
+        replacement: cloudmap
+      
+      # Optional: Filter targets based on namespace
+      # Uncomment to only scrape targets from 'production' namespace
+      # - source_labels: [__meta_cloudmap_namespace_name]
+      #   regex: production
+      #   action: keep
+      
+      # Optional: Add port if not present in target
+      # Uncomment and modify if your services don't include ports
+      # - source_labels: [__address__]
+      #   regex: '([^:]+)(?::\d+)?'
+      #   target_label: __address__
+      #   replacement: '${1}:8080'
+
+  # Example: Static configuration for comparison
+  - job_name: 'static-example'
+    static_configs:
+      - targets: ['aws-cloudmap-sd-api:3030']
+        labels:
+          service: 'cloudmap-api'
+          environment: 'development'
+
+# Alerting configuration (optional)
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          # - alertmanager:9093
+
+# Optional: Remote write configuration for long-term storage
+# remote_write:
+#   - url: "https://your-remote-storage-endpoint/api/v1/write"

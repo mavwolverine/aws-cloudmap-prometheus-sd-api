@@ -146,6 +146,90 @@ scrape_configs:
         target_label: namespace
 ```
 
+## Docker Usage
+
+### Building the Docker Image
+
+```bash
+# Build production image
+make docker-build
+
+# Build development image with hot reload
+make docker-build-dev
+```
+
+### Running with Docker
+
+```bash
+# Run the application in Docker
+make docker-run
+
+# Or run directly with docker
+docker run --rm -p 3030:3030 \
+  -e AWS_REGION=us-west-2 \
+  -e AWS_ACCESS_KEY_ID=your-key \
+  -e AWS_SECRET_ACCESS_KEY=your-secret \
+  aws-cloudmap-prometheus-sd-api:latest
+```
+
+### Docker Compose
+
+The project includes a comprehensive `docker-compose.yml` with multiple service profiles:
+
+#### Basic Usage
+```bash
+# Start the API service
+make docker-compose-up
+
+# View logs
+make docker-compose-logs
+
+# Stop services
+make docker-compose-down
+```
+
+#### Development with Hot Reload
+```bash
+# Start development services with file watching
+make docker-compose-up-dev
+```
+
+#### Full Monitoring Stack
+```bash
+# Start API + Prometheus + Grafana
+make docker-compose-up-monitoring
+```
+
+This will start:
+- **API**: http://localhost:3030/cloudmap_sd
+- **Prometheus**: http://localhost:9090
+- **Grafana**: http://localhost:3000 (admin/admin)
+
+### Environment Variables for Docker
+
+```bash
+# AWS Configuration
+AWS_REGION=us-west-2
+AWS_ACCESS_KEY_ID=your-access-key
+AWS_SECRET_ACCESS_KEY=your-secret-key
+AWS_SESSION_TOKEN=your-session-token  # Optional
+CLOUDMAP_NAMESPACE=production          # Optional
+
+# Server Configuration
+HOST=0.0.0.0
+PORT=3030
+RUST_LOG=info
+```
+
+### Docker Image Features
+
+- **Multi-stage build** for minimal production image
+- **Non-root user** for security
+- **Health checks** included
+- **SSL/TLS support** with ca-certificates
+- **Optimized layers** for faster builds
+- **Development variant** with hot reload support
+
 ## Development
 
 ### Running Tests

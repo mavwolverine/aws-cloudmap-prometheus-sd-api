@@ -1,0 +1,33 @@
+# Development Dockerfile with hot reload support
+# This image includes development tools and supports file watching
+
+FROM rust:1.87-slim
+
+# Install development dependencies
+RUN apt-get update && apt-get install -y \
+    pkg-config \
+    libssl-dev \
+    ca-certificates \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install cargo-watch for hot reloading
+RUN cargo install cargo-watch
+
+# Create a non-root user for development
+RUN groupadd -r appuser && useradd -r -g appuser appuser
+
+# Create app directory
+RUN mkdir -p /app && chown appuser:appuser /app
+
+# Set working directory
+WORKDIR /app
+
+# Switch to non-root user
+USER appuser
+
+# Expose the default port
+EXPOSE 3030
+
+# Default command (can be overridden in docker-compose)
+CMD ["cargo", "watch", "-x", "run"]

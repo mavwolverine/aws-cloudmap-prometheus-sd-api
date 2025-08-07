@@ -189,6 +189,12 @@ docker-build: ## Build Docker image
 		echo "$(GREEN)✓ Docker image built: $(IMAGE_NAME):$(TAG)$(NC)"; \
 	fi
 
+.PHONY: docker-build-dev
+docker-build-dev: ## Build development Docker image
+	@echo "$(BLUE)Building development Docker image...$(NC)"
+	docker build -f Dockerfile.dev -t $(IMAGE_NAME):dev .
+	@echo "$(GREEN)✓ Development Docker image built: $(IMAGE_NAME):dev$(NC)"
+
 .PHONY: docker-push
 docker-push: docker-build ## Build and push Docker image
 	@if [ -z "$(REGISTRY)" ]; then \
@@ -209,6 +215,50 @@ docker-run: ## Run the application in Docker
 		-e AWS_SECRET_ACCESS_KEY \
 		-e AWS_SESSION_TOKEN \
 		$(IMAGE_NAME):$(TAG)
+
+.PHONY: docker-compose-up
+docker-compose-up: ## Start services with docker-compose
+	@echo "$(BLUE)Starting services with docker-compose...$(NC)"
+	docker-compose up -d
+	@echo "$(GREEN)✓ Services started$(NC)"
+	@echo "$(YELLOW)Available services:$(NC)"
+	@echo "  - API: http://localhost:3030/cloudmap_sd"
+
+.PHONY: docker-compose-up-dev
+docker-compose-up-dev: ## Start development services with docker-compose
+	@echo "$(BLUE)Starting development services...$(NC)"
+	docker-compose --profile dev up -d
+	@echo "$(GREEN)✓ Development services started$(NC)"
+
+.PHONY: docker-compose-up-monitoring
+docker-compose-up-monitoring: ## Start services with monitoring stack
+	@echo "$(BLUE)Starting services with monitoring...$(NC)"
+	docker-compose --profile monitoring up -d
+	@echo "$(GREEN)✓ Services with monitoring started$(NC)"
+	@echo "$(YELLOW)Available services:$(NC)"
+	@echo "  - API: http://localhost:3030/cloudmap_sd"
+	@echo "  - Prometheus: http://localhost:9090"
+	@echo "  - Grafana: http://localhost:3000 (admin/admin)"
+
+.PHONY: docker-compose-down
+docker-compose-down: ## Stop and remove docker-compose services
+	@echo "$(BLUE)Stopping docker-compose services...$(NC)"
+	docker-compose down
+	@echo "$(GREEN)✓ Services stopped$(NC)"
+
+.PHONY: docker-compose-logs
+docker-compose-logs: ## Show docker-compose logs
+	@echo "$(BLUE)Showing docker-compose logs...$(NC)"
+	docker-compose logs -f
+
+.PHONY: docker-clean
+docker-clean: ## Clean Docker images and containers
+	@echo "$(BLUE)Cleaning Docker artifacts...$(NC)"
+	docker-compose down --rmi all --volumes --remove-orphans 2>/dev/null || true
+	docker rmi $(IMAGE_NAME):$(TAG) 2>/dev/null || true
+	docker rmi $(IMAGE_NAME):dev 2>/dev/null || true
+	docker system prune -f
+	@echo "$(GREEN)✓ Docker cleanup complete$(NC)"
 
 .PHONY: dev-setup
 dev-setup: ## Set up development environment
