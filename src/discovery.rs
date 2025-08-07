@@ -101,6 +101,16 @@ impl Discovery {
     ) -> Result<Vec<PrometheusTarget>, Box<dyn std::error::Error + Send + Sync>> {
         let mut targets = Vec::new();
 
+        // Log namespace filtering configuration
+        match &self.config.namespace {
+            Some(namespace) => {
+                info!("🔍 Filtering discovery to namespace: {}", namespace);
+            }
+            None => {
+                info!("🔍 Discovering all namespaces (no filter specified)");
+            }
+        }
+
         // List namespaces
         let namespaces_resp = self.client.list_namespaces().send().await?;
 
@@ -111,6 +121,7 @@ impl Discovery {
             // Skip if namespace filter is set and doesn't match
             if let Some(ref filter) = self.config.namespace {
                 if namespace_name != filter {
+                    debug!("⏭️  Skipping namespace '{}' (filter: '{}')", namespace_name, filter);
                     continue;
                 }
             }
@@ -388,5 +399,27 @@ mod tests {
             target.labels.get("__meta_cloudmap_service_name"),
             Some(&"web-service".to_string())
         );
+    }
+
+    #[test]
+    fn test_config_with_namespace_filter() {
+        let config = Config {
+            region: Some("us-west-2".to_string()),
+            namespace: Some("production".to_string()),
+        };
+
+        assert_eq!(config.region, Some("us-west-2".to_string()));
+        assert_eq!(config.namespace, Some("production".to_string()));
+    }
+
+    #[test]
+    fn test_config_without_namespace_filter() {
+        let config = Config {
+            region: Some("us-west-2".to_string()),
+            namespace: None,
+        };
+
+        assert_eq!(config.region, Some("us-west-2".to_string()));
+        assert_eq!(config.namespace, None);
     }
 }

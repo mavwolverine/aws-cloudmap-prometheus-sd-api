@@ -50,6 +50,33 @@ Create a `config.json` file:
 - `AWS_REGION`: Override the AWS region
 - `CLOUDMAP_NAMESPACE`: Override the namespace filter
 
+### Namespace Filtering
+
+You can filter discovery to a specific Cloud Map namespace in three ways:
+
+#### 1. Config File
+```json
+{
+  "host": "0.0.0.0",
+  "port": 3030,
+  "aws_region": "us-west-2",
+  "cloudmap_namespace": "production"
+}
+```
+
+#### 2. Environment Variable
+```bash
+CLOUDMAP_NAMESPACE=production cargo run
+```
+
+#### 3. Both (environment variable takes precedence)
+```bash
+# Config has "staging", but env var overrides to "production"
+CLOUDMAP_NAMESPACE=production cargo run
+```
+
+If no namespace is specified, the service will discover all namespaces in your AWS account.
+
 ### 3. AWS Credentials
 
 Ensure your AWS credentials are configured via one of:
@@ -81,14 +108,17 @@ Ensure your AWS credentials are configured via one of:
 ### 4. Run the Service
 
 ```bash
-# Using default configuration
+# Using default configuration (discovers all namespaces)
 cargo run
 
 # With environment overrides
 AWS_REGION=us-east-1 PORT=8080 cargo run
 
-# With specific AWS profile
-AWS_PROFILE=production cargo run
+# Filter to specific namespace
+CLOUDMAP_NAMESPACE=production cargo run
+
+# With specific AWS profile and namespace
+AWS_PROFILE=production CLOUDMAP_NAMESPACE=production cargo run
 
 # With debug logging
 RUST_LOG=debug cargo run

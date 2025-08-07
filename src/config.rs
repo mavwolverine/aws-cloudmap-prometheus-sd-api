@@ -26,6 +26,9 @@ pub struct Config {
     pub host: String,
     pub port: u16,
     pub aws_region: Option<String>,
+    /// Specific Cloud Map namespace to discover
+    /// If None, discovers all namespaces
+    /// Set via config file or CLOUDMAP_NAMESPACE environment variable
     pub cloudmap_namespace: Option<String>,
 }
 
