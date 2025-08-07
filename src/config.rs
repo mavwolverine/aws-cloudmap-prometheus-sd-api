@@ -17,8 +17,8 @@
 //! - `AWS_REGION`: AWS region for Cloud Map operations
 //! - `CLOUDMAP_NAMESPACE`: Specific namespace to filter (optional)
 
-use serde::{Deserialize, Serialize};
 use log::{info, warn};
+use serde::{Deserialize, Serialize};
 use std::fs;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -44,18 +44,16 @@ impl Config {
     pub fn load() -> Self {
         // Try to read config from file
         let mut config = match fs::read_to_string("config.json") {
-            Ok(content) => {
-                match serde_json::from_str::<Config>(&content) {
-                    Ok(config) => {
-                        info!("📄 Loaded config from config.json");
-                        config
-                    }
-                    Err(e) => {
-                        warn!("⚠️  Failed to parse config.json: {}, using defaults", e);
-                        Config::default()
-                    }
+            Ok(content) => match serde_json::from_str::<Config>(&content) {
+                Ok(config) => {
+                    info!("📄 Loaded config from config.json");
+                    config
                 }
-            }
+                Err(e) => {
+                    warn!("⚠️  Failed to parse config.json: {}, using defaults", e);
+                    Config::default()
+                }
+            },
             Err(_) => {
                 info!("📄 No config.json found, using defaults");
                 Config::default()
@@ -94,7 +92,10 @@ impl Config {
         let parts: Vec<&str> = self.host.split('.').collect();
 
         if parts.len() != 4 {
-            return Err(format!("Invalid IP format: expected 4 parts, got {}", parts.len()));
+            return Err(format!(
+                "Invalid IP format: expected 4 parts, got {}",
+                parts.len()
+            ));
         }
 
         let mut result = [0u8; 4];

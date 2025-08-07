@@ -14,7 +14,7 @@
 
 use crate::discovery::Discovery;
 use log::error;
-use warp::{Reply, Rejection};
+use warp::{Rejection, Reply};
 
 /// Custom error type for Cloud Map discovery failures
 ///
@@ -80,8 +80,14 @@ mod tests {
     fn test_prometheus_target_creation() {
         // Test that we can create a PrometheusTarget (used in handlers)
         let mut labels = HashMap::new();
-        labels.insert("__meta_cloudmap_namespace_name".to_string(), "test-ns".to_string());
-        labels.insert("__meta_cloudmap_service_name".to_string(), "test-svc".to_string());
+        labels.insert(
+            "__meta_cloudmap_namespace_name".to_string(),
+            "test-ns".to_string(),
+        );
+        labels.insert(
+            "__meta_cloudmap_service_name".to_string(),
+            "test-svc".to_string(),
+        );
 
         let target = PrometheusTarget {
             targets: vec!["192.168.1.1:8080".to_string()],

@@ -30,18 +30,17 @@ mod config;
 mod discovery;
 mod handlers;
 
+use aws_sdk_servicediscovery::Client as ServiceDiscoveryClient;
 use config::Config;
 use discovery::Discovery;
 use handlers::cloudmap_sd_handler;
 use log::{info, warn};
 use warp::Filter;
-use aws_sdk_servicediscovery::Client as ServiceDiscoveryClient;
 
 #[tokio::main]
 async fn main() {
     // Initialize the logger
-    env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("info"))
-        .init();
+    env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("info")).init();
 
     // Load configuration
     let config = Config::load();
@@ -62,14 +61,14 @@ async fn main() {
     };
 
     let servicediscovery_client = ServiceDiscoveryClient::new(&aws_config);
-    
+
     // Log the actual region being used
     if let Some(region) = aws_config.region() {
         info!("🌍 AWS SDK initialized with region: {}", region);
     } else {
         warn!("⚠️  No AWS region configured!");
     }
-    
+
     // Create discovery instance
     let discovery_config = discovery::Config {
         region: config.aws_region.clone(),
@@ -89,12 +88,15 @@ async fn main() {
     let host = match config.parse_host() {
         Ok(host_array) => host_array,
         Err(e) => {
-            warn!("⚠️  Failed to parse host '{}': {}, using 0.0.0.0", config.host, e);
+            warn!(
+                "⚠️  Failed to parse host '{}': {}, using 0.0.0.0",
+                config.host, e
+            );
             [0, 0, 0, 0]
         }
     };
     let addr = (host, config.port);
-    
+
     info!("🚀 Server starting...");
     info!("📡 Listening on http://{}:{}", config.host, config.port);
     info!("📋 Available endpoint:");
@@ -102,7 +104,5 @@ async fn main() {
     info!("🔗 Try: http://localhost:{}/cloudmap_sd", config.port);
     warn!("Press Ctrl+C to stop the server");
 
-    warp::serve(cloudmap_route)
-        .run(addr)
-        .await;
+    warp::serve(cloudmap_route).run(addr).await;
 }

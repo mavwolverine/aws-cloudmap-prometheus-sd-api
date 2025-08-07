@@ -19,8 +19,8 @@
 //! 5. Create Prometheus targets with appropriate labels
 
 use aws_sdk_servicediscovery::Client as ServiceDiscoveryClient;
-use log::{info, debug};
-use serde::{Serialize, Deserialize};
+use log::{debug, info};
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 /// Configuration for service discovery operations
@@ -96,7 +96,9 @@ impl Discovery {
     /// - Network connectivity issues
     /// - AWS API rate limiting
     /// - Malformed service or instance data
-    pub async fn discover_targets(&self) -> Result<Vec<PrometheusTarget>, Box<dyn std::error::Error + Send + Sync>> {
+    pub async fn discover_targets(
+        &self,
+    ) -> Result<Vec<PrometheusTarget>, Box<dyn std::error::Error + Send + Sync>> {
         let mut targets = Vec::new();
 
         // List namespaces
@@ -121,7 +123,8 @@ impl Discovery {
                 .values(namespace_id)
                 .build()?;
 
-            let services_resp = self.client
+            let services_resp = self
+                .client
                 .list_services()
                 .filters(service_filter)
                 .send()
@@ -133,10 +136,14 @@ impl Discovery {
                 let service_name = service.name().unwrap_or("unknown");
                 let service_id = service.id().unwrap_or("");
 
-                info!("📋 Found service: {} in namespace: {}", service_name, namespace_name);
+                info!(
+                    "📋 Found service: {} in namespace: {}",
+                    service_name, namespace_name
+                );
 
                 // Get instances for this service
-                let instances_resp = self.client
+                let instances_resp = self
+                    .client
                     .list_instances()
                     .service_id(service_id)
                     .send()
@@ -265,11 +272,7 @@ mod tests {
     fn test_create_prometheus_target_with_empty_ips() {
         let discovery = create_test_discovery();
 
-        let target = discovery.create_prometheus_target(
-            "test-namespace",
-            "test-service",
-            vec![],
-        );
+        let target = discovery.create_prometheus_target("test-namespace", "test-service", vec![]);
 
         assert!(target.targets.is_empty());
         assert_eq!(
@@ -286,11 +289,8 @@ mod tests {
     fn test_create_prometheus_target_with_port() {
         let discovery = create_test_discovery();
 
-        let target = discovery.create_prometheus_target(
-            "ns1",
-            "svc1",
-            vec!["192.168.0.1:8080".to_string()],
-        );
+        let target =
+            discovery.create_prometheus_target("ns1", "svc1", vec!["192.168.0.1:8080".to_string()]);
 
         assert_eq!(target.targets, vec!["192.168.0.1:8080"]);
         assert_eq!(
@@ -306,8 +306,14 @@ mod tests {
     #[test]
     fn test_prometheus_target_serialization() {
         let mut labels = HashMap::new();
-        labels.insert("__meta_cloudmap_namespace_name".to_string(), "ns1".to_string());
-        labels.insert("__meta_cloudmap_service_name".to_string(), "svc1".to_string());
+        labels.insert(
+            "__meta_cloudmap_namespace_name".to_string(),
+            "ns1".to_string(),
+        );
+        labels.insert(
+            "__meta_cloudmap_service_name".to_string(),
+            "svc1".to_string(),
+        );
 
         let target = PrometheusTarget {
             targets: vec!["192.168.0.1:8080".to_string()],
@@ -361,7 +367,11 @@ mod tests {
         let target = discovery.create_prometheus_target(
             "production-namespace",
             "web-service",
-            vec!["10.0.1.1".to_string(), "10.0.1.2".to_string(), "10.0.1.3".to_string()],
+            vec![
+                "10.0.1.1".to_string(),
+                "10.0.1.2".to_string(),
+                "10.0.1.3".to_string(),
+            ],
         );
 
         assert_eq!(target.targets.len(), 3);
